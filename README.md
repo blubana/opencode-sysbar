@@ -5,7 +5,7 @@ A small sidebar plugin for the OpenCode v2 TUI. It adds a **Status** block to th
 - current model (and variant), session elapsed time and wall clock
 - **CPU and memory gauges** (live, green / yellow / red by load), plus a per-core heat strip
 - **token mix bar**: input / cache read / output / reasoning as one stacked bar, with cost
-- **multi-agent panel**: every session in the current family (orchestrator and its sub-agents) with a running/idle dot and a bar showing its share of the tokens
+- **multi-agent panel**: every session in the current family (orchestrator and its sub-agents) with a running/idle dot, the model it uses, and a bar showing its share of the tokens
 - host name, core count, load average
 
 Plain JavaScript, no build step, read-only (it never writes files or sends data anywhere).

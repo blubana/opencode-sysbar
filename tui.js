@@ -228,6 +228,13 @@ export default Plugin.define({
               const share = (u.input + u.output + u.reasoning) / grand;
               const dot = b ? (Math.floor(Date.now() / 500) % 2 ? "●" : "◉") : "○";
               out.push(row([txt(b ? C.ok : C.dim, dot + " "), txt(fg, name), el("box", { flexGrow: 1 }), txt(C.dim, `${fmtN(u.input + u.output)} · ${Math.round(share * 100)}%`)]));
+              const mm = u.model ?? info?.model;
+              const mid = typeof mm === "string" ? mm : mm?.id;
+              const mvar = typeof mm === "object" && mm?.variant && mm.variant !== "none" ? " · " + mm.variant : "";
+              const mprov = typeof mm === "object" && mm?.providerID ? mm.providerID + "/" : "";
+              const full = mid ? mprov + mid + mvar : "model: pending";
+              const short = full.length > W - 2 ? (mid + mvar) : full;
+              out.push(txt(C.dim, "  " + (short.length > W - 2 ? short.slice(0, W - 3) + "…" : short)));
               out.push(gauge(share * 100, W, b ? C.ok : C.in));
             }
           }
