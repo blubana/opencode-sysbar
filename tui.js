@@ -15,7 +15,6 @@ const C = {
   dim: "#8b949e", off: "#30363d",
 };
 const BLOCKS = "▁▂▃▄▅▆▇█";
-const HISTORY = 30;
 const MAX_AGENTS = 8;
 
 const el = (tag, props = {}, children = []) => {
@@ -57,13 +56,6 @@ function stacked(parts, width) {
     if (c.v > 0) { c.n++; used++; }
   }
   return row(cells.filter((c) => c.n > 0).map((c) => txt(c.color, "█".repeat(c.n))));
-}
-// Sparkline from 0-100 samples, coloured by the latest value.
-function spark(samples, width) {
-  const s = samples.slice(-width);
-  const body = s.map((v) => BLOCKS[clamp(Math.round((v / 100) * 7), 0, 7)]).join("");
-  const last = s.length ? s[s.length - 1] : 0;
-  return row([txt(C.off, "▁".repeat(width - s.length)), txt(level(last), body)]);
 }
 
 // os.freemem() ignores reclaimable cache on macOS/Linux and reads ~100% used; use the OS notion of "available".
@@ -109,7 +101,6 @@ export default Plugin.define({
     let prev = cpuTimes();
     let cores = prev.map(() => 0);
     let cpuPct = 0;
-    const cpuHist = [], memHist = [];
     let disposed = false;
     let busy = false;
 
@@ -124,10 +115,7 @@ export default Plugin.define({
       });
       if (dt > 0) cpuPct = Math.round((1 - di / dt) * 100);
       prev = cur;
-      const memPct = Math.round((memUsed() / os.totalmem()) * 100);
-      cpuHist.push(cpuPct); memHist.push(memPct);
-      if (cpuHist.length > HISTORY) cpuHist.shift();
-      if (memHist.length > HISTORY) memHist.shift();
+      memUsed(); // refresh the cached reading
     }
 
     // Root session + its children (sub-agents), capped.
@@ -207,11 +195,9 @@ export default Plugin.define({
             // --- hardware ---
             label("CPU", `${cpuPct}%`, level(cpuPct)),
             gauge(cpuPct, W, level(cpuPct)),
-            spark(cpuHist, W),
             row(cores.slice(0, W).map((p) => txt(level(p), BLOCKS[clamp(Math.round((p / 100) * 7), 0, 7)]))),
             label("Memory", `${gb(memUsedB)}/${gb(memTotal)}G ${memPct}%`, level(memPct)),
             gauge(memPct, W, level(memPct)),
-            spark(memHist, W),
             label("Host", `${os.hostname().split(".")[0].replace(/s?-?mac.*$/i, "") || os.hostname().slice(0, 8)} · ${os.cpus().length}c · ${os.loadavg()[0].toFixed(1)}`),
             txt(fg, " "),
             // --- tokens ---
